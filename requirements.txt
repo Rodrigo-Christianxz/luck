@@ -1,0 +1,5 @@
+Flask==3.0.3             # Para a API (pode ser substituído por FastAPI)
+torch==2.5.0            # Para a rede neural
+numpy==1.21.2       # Manipulação de arrays
+#sqlite3                      # Banco de dados (vem instalado com Python)
+
