@@ -1,49 +1,63 @@
-import os
-from sklearn.neural_network import MLPRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-import joblib
+# neural_network.py
 
-# Função para treinar uma rede neural simples com scikit-learn
-def treinar_rede(entradas, saidas):
-    # Criar a pasta 'data' se não existir
-    if not os.path.exists('data'):
-        os.makedirs('data')
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import json
 
-    # Normalizando os dados de entrada
-    scaler = MinMaxScaler()
-    entradas_normalizadas = scaler.fit_transform(entradas)
+class ComandoModelo(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(ComandoModelo, self).__init__()
+        self.hidden = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.output = nn.Linear(hidden_size, output_size)
 
-    # Dividindo os dados em treino e teste (10% para teste)
-    X_train, X_test, y_train, y_test = train_test_split(entradas_normalizadas, saidas, test_size=0.1, random_state=42)
+    def forward(self, x):
+        hidden_out = self.hidden(x)
+        relu_out = self.relu(hidden_out)
+        output_out = self.output(relu_out)
+        return output_out
 
-    # Definindo o modelo de rede neural com mais neurônios e regularização
-    modelo = MLPRegressor(hidden_layer_sizes=(10,), max_iter=1000)
+def treinar_modelo(dados):
+    input_size = len(dados['input'][0])  # Tamanho dos dados de entrada
+    hidden_size = 10  # Tamanho da camada oculta
+    output_size = len(dados['output'])  # Número de classes de saída
 
-    # Treinando a rede neural
-    modelo.fit(X_train, y_train)
+    modelo = ComandoModelo(input_size, hidden_size, output_size)
+    criterio = nn.CrossEntropyLoss()
+    otimizador = optim.SGD(modelo.parameters(), lr=0.01)
 
-    # Avaliando a rede no conjunto de teste
-    score = modelo.score(X_test, y_test)
-    print(f"Score de teste: {score}")
+    for epoch in range(100):  # Número de épocas
+        for input_tensor, target in zip(dados['input'], dados['output']):
+            input_tensor = torch.FloatTensor(input_tensor)
+            target = torch.LongTensor([target])
 
-    # Salvando o modelo treinado
-    joblib.dump(modelo, 'data/modelo_neural.pkl')
+            otimizador.zero_grad()
+            output = modelo(input_tensor)
+            perda = criterio(output.unsqueeze(0), target)
+            perda.backward()
+            otimizador.step()
 
     return modelo
 
-# Execução principal
-if __name__ == "__main__":
-    # Exemplo de entradas e saídas
-    entradas = [
-        [0.5, 0.3], [0.6, 0.8], [0.9, 0.1], [0.4, 0.7], [0.7, 0.9], [0.1, 0.2], [0.3, 0.5], [0.8, 0.6],
-        [0.2, 0.9], [0.4, 0.4], [0.1, 0.5], [0.3, 0.9], [0.7, 0.2], [0.5, 0.1], [0.9, 0.7], [0.6, 0.3],
-        [0.4, 0.2], [0.8, 0.9], [0.9, 0.6], [0.2, 0.1], [0.3, 0.8], [0.7, 0.4]
-    ]
-    saidas = [
-        0.4, 0.7, 0.2, 0.5, 0.9, 0.3, 0.6, 0.8, 0.5, 0.4, 0.3, 0.7, 0.6, 0.2, 0.9, 0.8,
-        0.5, 0.9, 0.6, 0.3, 0.7, 0.4
-    ]
+def carregar_dados():
+    # Exemplo de dados. Você deve substituir isso pelos seus dados reais.
+    return {
+        "input": [
+            [1, 0, 0, 0],  # O que você pode fazer?
+            [0, 1, 0, 0],  # Adicione uma tarefa.
+            [0, 0, 1, 0],  # Mostre minhas tarefas.
+            [0, 0, 0, 1]   # Comando adicional.
+        ],
+        "output": [
+            0,  # Classe para "O que você pode fazer?"
+            1,  # Classe para "Adicione uma tarefa."
+            2,  # Classe para "Mostre minhas tarefas."
+            1   # Classe para o comando adicional.
+        ]
+    }
 
-    # Executando o treinamento da rede neural
-    treinar_rede(entradas, saidas)
+if __name__ == "__main__":
+    dados = carregar_dados()
+    modelo = treinar_modelo(dados)
+    print("Modelo treinado com sucesso!")

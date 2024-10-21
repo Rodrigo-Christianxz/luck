@@ -1,5 +1,16 @@
+# backend/models/tarefas.py
+
 class Tarefa:
-    def __init__(self, nome_tarefa, descricao, status="pendente"):
-        self.nome_tarefa = nome_tarefa
+    def __init__(self, descricao):
         self.descricao = descricao
-        self.status = status
+
+class GerenciadorDeTarefas:
+    def __init__(self):
+        self.tarefas = []
+
+    def adicionar_tarefa(self, descricao):
+        nova_tarefa = Tarefa(descricao)
+        self.tarefas.append(nova_tarefa)
+
+    def listar_tarefas(self):
+        return self.tarefas
