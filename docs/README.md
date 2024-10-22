@@ -11,3 +11,5 @@ Este é o assistente pessoal "Luck".
 ## Uso
 
 Acesse `http://localhost:5000` no seu navegador.
+
+E se quiser colabore com o projeto!
